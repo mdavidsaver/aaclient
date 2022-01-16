@@ -1,0 +1,27 @@
+[DEFAULT]
+
+# AA server host name.  Required
+host = myaa
+
+# Appliance entry point URL
+#url = http://%(host)s:%(port)s/mgmt/bpl/getApplianceInfo
+#port = 17665',
+
+# Default count for plot() binned requests
+#defaultcount = 1000
+
+# Limit on concurrent queries
+#maxquery = 30
+
+# Suggested chuck size in bytes
+#chunksize = 262144
+
+# Default query start/end time range
+#starttime = -1h
+#endtime = now
+
+
+[otheraa]
+host = myotheraa
+
+# arget -C otheraa ...

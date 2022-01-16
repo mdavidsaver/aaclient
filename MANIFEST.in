@@ -1,0 +1,8 @@
+include LICENSE
+include README.md
+include aaclient/*.pxd
+include aaclient/*.pyx
+include aaclient/*.h
+include aaclient/*.cpp
+include aaclient/*.proto
+include aaclient/test/test*.pb
