@@ -135,7 +135,7 @@ void val_assign(const std::string& v, char *& cur, size_t maxelems)
 void val_assign(const google::protobuf::RepeatedPtrField<std::string>& v, char *& cur, size_t maxelems)
 {
     for(size_t i=0, N=v.size(); i<N; i++) {
-        const auto& s = v[i];
+        const auto& s = v.Get(i);
         size_t l = s.size();
         if(l>40)
             l = 40;

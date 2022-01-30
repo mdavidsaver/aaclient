@@ -165,7 +165,7 @@ respect to the absolute.  eg. the following are equivalent:
 
   -s "2021/1/13 00:00" -e "2021/1/13 02:00"
   -s "2021/1/13 00:00" -e "2 hours"
-  -s "-2 hours" -e "2021/5/13 02:00"
+  -s="-2 hours" -e "2021/5/13 02:00"
 
 If both are absolute, then they are interpreted wrt. the current date and time. eg.
 
@@ -195,6 +195,7 @@ def add_query_args(G):
 def run_with_timeout(getargs, corofn):
     args = getargs().parse_args()
     logging.basicConfig(level=args.level)
+    _log.debug('%r', args)
     try:
         asyncio.run(asyncio.wait_for(corofn(args), timeout=args.timeout or None))
     except asyncio.TimeoutError:

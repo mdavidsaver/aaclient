@@ -3,6 +3,7 @@
 # See LICENSE file
 
 import sys
+import os
 import re
 import logging
 import asyncio
@@ -113,14 +114,23 @@ async def amain(args):
             print("No PVs", file=sys.stderr)
             sys.exit(1)
 
-        fname, _sep, gname = args.output.partition(':')
+        sep = args.output.rfind(':')
+        if sep<=2: # colon not found, or (probably) windows drive letter
+            fname, gname = args.output, '/'
+        else:
+            fname, gname = args.output[:sep], args.output[1+sep:]
 
-        h5 = File(fname, mode="a")
-        grp = h5.require_group(gname or '/')
+        _log.debug("Opening %s w. %s", fname, gname)
 
-        Qs = [getnprint(args, arch, pv, grp) for pv in matches]
+        with File(fname, mode="a") as h5:
+            _log.info('Writing %s', os.path.join(os.getcwd(), h5.filename))
+            grp = h5.require_group(gname)
 
-        await asyncio.gather(*Qs)
+            Qs = [getnprint(args, arch, pv, grp) for pv in matches]
+
+            await asyncio.gather(*Qs)
+
+            h5.flush()
 
 def main():
     run_with_timeout(getargs, amain)

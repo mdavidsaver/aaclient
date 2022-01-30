@@ -37,7 +37,7 @@ class TestWorkerLoop(unittest.TestCase):
                 CF.result()
 
 class TestAPI(DummyServer, unittest.TestCase):
-    timeout = 1.0
+    timeout = 5.0
     def test_api(self):
         with getArchive(self.conf, timeout=self.timeout) as arch:
             self.assertSetEqual({'test1', 'test2'},

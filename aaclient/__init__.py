@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: BSD
 # See LICENSE file
 
+import os
+import platform
 import enum
 from importlib import import_module
 
@@ -13,6 +15,15 @@ __all__ = (
     'getArchive',
     'MatchMode',
 )
+
+# finding bundled libprotobuf-lite.dll in wheel builds
+if hasattr(os, 'add_dll_directory'): # windows
+    os.add_dll_directory(os.path.dirname(__file__))
+elif platform.system()=='Windows':
+    os.environ['PATH'] = os.pathsep.join([
+        os.path.dirname(__file__),
+        os.environ['PATH'],
+    ])
 
 class MatchMode(enum.Enum):
     Exact = 0

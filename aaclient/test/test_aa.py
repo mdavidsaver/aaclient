@@ -48,7 +48,7 @@ class AIOTest(type):
         return type.__new__(klass, name, bases, classdict)
 
 class DummyServer(metaclass=AIOTest):
-    timeout = 5.0
+    timeout = 15.0
 
     def setUp(self):
         super().setUp()
@@ -92,7 +92,7 @@ class DummyServer(metaclass=AIOTest):
 
         self.runner = AppRunner(self.app)
         await self.runner.setup()
-        self.site = TCPSite(self.runner, 'localhost', 0)
+        self.site = TCPSite(self.runner, '127.0.0.1', 0)
         await self.site.start()
 
         host, port = self.site._server.sockets[0].getsockname()[:2]
@@ -160,6 +160,10 @@ class TestAPI(DummyServer, unittest.TestCase):
 class TestCLI(DummyServer, unittest.TestCase):
     maxDiff = 16*1024
     async def runCLI(self, name, *args):
+        if sys.version_info<(3,8):
+            # until 3.8, asyncio.create_subprocess_exec() only works for default loop/main thread
+            raise unittest.SkipTest('cf. https://bugs.python.org/issue35621')
+
         env = os.environ.copy()
         # ensure our code is reachable after changing to temp dir
         env['PYTHONPATH'] = ''.join([str(Path(topfile).parent.parent), os.pathsep, env.get('PYTHONPATH', '')])
@@ -185,59 +189,64 @@ port = {self.conf['port']}
             return P.returncode, out.read()
 
     async def test_argrep_none(self):
-        code, out = await self.runCLI("grep", "--exact", "nosuchpv")
+        code, out = await self.runCLI("grep", '--verbose', "--exact", "nosuchpv")
         self.assertEqual(code, 1)
         self.assertEqual(out, '')
 
     async def test_argrep_one(self):
-        code, out = await self.runCLI("grep", "--exact", "test1")
+        code, out = await self.runCLI("grep", '--verbose', "--exact", "test1")
         self.assertEqual(code, 0)
         self.assertEqual(out, 'test1\n')
 
     async def test_argrep_wild(self):
-        code, out = await self.runCLI("grep", "--wildcard", "test?")
+        code, out = await self.runCLI("grep", '--verbose', "--wildcard", "test?")
         self.assertEqual(code, 0)
         self.assertEqual(out, 'test1\ntest2\n')
 
     async def test_argrep_re(self):
-        code, out = await self.runCLI("grep", "--regexp", "test[12]")
+        code, out = await self.runCLI("grep", '--verbose', "--regexp", "test[12]")
         self.assertEqual(code, 0)
         self.assertEqual(out, 'test1\ntest2\n')
 
     async def test_arget(self):
         # dummy server ignore time range
-        code, out = await self.runCLI("get", "-s=-1h", "-e", "now", "LN-AM{RadMon:1}DoseRate-I")
+        code, out = await self.runCLI("get", '--verbose', "--utc", "-s=-1h", "-e", "now", "LN-AM{RadMon:1}DoseRate-I")
         self.assertEqual(code, 0)
         self.assertEqual(out, '''
-02-06 06:56:44.887016 LN-AM{RadMon:1}DoseRate-I 0.03
-02-06 10:55:54.139923 LN-AM{RadMon:1}DoseRate-I 2.17
-02-06 10:55:55.140245 LN-AM{RadMon:1}DoseRate-I 0.45
-02-06 10:55:56.140025 LN-AM{RadMon:1}DoseRate-I -0.15
-02-06 10:55:57.140228 LN-AM{RadMon:1}DoseRate-I -0.31
-02-06 10:56:01.145268 LN-AM{RadMon:1}DoseRate-I -0.21
-02-06 10:56:03.145420 LN-AM{RadMon:1}DoseRate-I -0.14
-02-06 10:56:05.145170 LN-AM{RadMon:1}DoseRate-I -0.08
-02-06 10:56:09.145384 LN-AM{RadMon:1}DoseRate-I -0.02
-02-06 11:09:18.541449 LN-AM{RadMon:1}DoseRate-I 0.04
-02-06 11:29:16.140991 LN-AM{RadMon:1}DoseRate-I 0.02
-02-06 11:29:16.000000 LN-AM{RadMon:1}DoseRate-I 0.0 DISCONNECT 0
-02-06 14:56:02.434265 LN-AM{RadMon:1}DoseRate-I 2.18
-02-06 14:56:03.429270 LN-AM{RadMon:1}DoseRate-I 0.44
-02-06 14:56:04.434135 LN-AM{RadMon:1}DoseRate-I -0.14
-02-06 14:56:05.434278 LN-AM{RadMon:1}DoseRate-I -0.32
-02-06 14:56:08.434441 LN-AM{RadMon:1}DoseRate-I -0.26
-02-06 14:56:09.434221 LN-AM{RadMon:1}DoseRate-I -0.21
-02-06 14:56:11.434273 LN-AM{RadMon:1}DoseRate-I -0.14
-02-06 14:56:13.434367 LN-AM{RadMon:1}DoseRate-I -0.09
-02-06 14:56:17.439389 LN-AM{RadMon:1}DoseRate-I -0.03
-02-06 14:56:44.449503 LN-AM{RadMon:1}DoseRate-I 0.03
+02-06 14:56:44.887016 LN-AM{RadMon:1}DoseRate-I 0.03
+02-06 18:55:54.139923 LN-AM{RadMon:1}DoseRate-I 2.17
+02-06 18:55:55.140245 LN-AM{RadMon:1}DoseRate-I 0.45
+02-06 18:55:56.140025 LN-AM{RadMon:1}DoseRate-I -0.15
+02-06 18:55:57.140228 LN-AM{RadMon:1}DoseRate-I -0.31
+02-06 18:56:01.145268 LN-AM{RadMon:1}DoseRate-I -0.21
+02-06 18:56:03.145420 LN-AM{RadMon:1}DoseRate-I -0.14
+02-06 18:56:05.145170 LN-AM{RadMon:1}DoseRate-I -0.08
+02-06 18:56:09.145384 LN-AM{RadMon:1}DoseRate-I -0.02
+02-06 19:09:18.541449 LN-AM{RadMon:1}DoseRate-I 0.04
+02-06 19:29:16.140991 LN-AM{RadMon:1}DoseRate-I 0.02
+02-06 19:29:16.000000 LN-AM{RadMon:1}DoseRate-I 0.0 DISCONNECT 0
+02-06 22:56:02.434265 LN-AM{RadMon:1}DoseRate-I 2.18
+02-06 22:56:03.429270 LN-AM{RadMon:1}DoseRate-I 0.44
+02-06 22:56:04.434135 LN-AM{RadMon:1}DoseRate-I -0.14
+02-06 22:56:05.434278 LN-AM{RadMon:1}DoseRate-I -0.32
+02-06 22:56:08.434441 LN-AM{RadMon:1}DoseRate-I -0.26
+02-06 22:56:09.434221 LN-AM{RadMon:1}DoseRate-I -0.21
+02-06 22:56:11.434273 LN-AM{RadMon:1}DoseRate-I -0.14
+02-06 22:56:13.434367 LN-AM{RadMon:1}DoseRate-I -0.09
+02-06 22:56:17.439389 LN-AM{RadMon:1}DoseRate-I -0.03
+02-06 22:56:44.449503 LN-AM{RadMon:1}DoseRate-I 0.03
 '''.lstrip())
 
     async def test_arh5(self):
+        try:
+            import h5py
+        except ImportError:
+            raise unittest.SkipTest('h5py not installed')
+
         with TemporaryDirectory() as outdir:
             outfile = Path(outdir) / "out.h5"
 
-            code, out = await self.runCLI("h5", "-s=-1h", "-e", "now", str(outfile)+':/tst/grp', "LN-AM{RadMon:1}DoseRate-I")
+            code, out = await self.runCLI("h5", '--verbose', "-s=-1h", "-e", "now", str(outfile)+':/tst/grp', "LN-AM{RadMon:1}DoseRate-I")
             self.assertEqual(code, 0)
 
             from h5py import File

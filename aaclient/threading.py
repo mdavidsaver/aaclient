@@ -18,7 +18,11 @@ class BlockingArchive:
     def __init__(self, *args, timeout=5.0, debug=False, **kws):
         self._W = WorkerLoop(timeout=timeout, debug=debug)
 
-        self.__arch = self._W(getArchiveAsyncio(*args, **kws))
+        try:
+            self.__arch = self._W(getArchiveAsyncio(*args, **kws))
+        except:
+            self._W = None # avoid secondary error during __del__()
+            raise
 
     def __enter__(self):
         return self

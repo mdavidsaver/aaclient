@@ -15,6 +15,18 @@ from .util import wild2re
 from .date import makeTimeInterval, isoString
 from ._ext import StreamDecoder
 
+try:
+    from asyncio import to_thread
+except ImportError:
+    import contextvars
+    import functools
+    async def to_thread(func, *args, **kwargs):
+        loop = asyncio.get_running_loop()
+        ctx = contextvars.copy_context()
+        func_call = functools.partial(ctx.run, func, *args, **kwargs)
+        return await loop.run_in_executor(None, func_call)
+
+
 _log = logging.getLogger(__name__)
 
 class Appl(IArchive):
@@ -78,7 +90,7 @@ class Appl(IArchive):
                 if not blob:
                     blob, last = None, True
 
-                if not await asyncio.to_thread(D.process, blob, last=last):
+                if not await to_thread(D.process, blob, last=last):
                     continue # no additional output added
 
                 output, D.output = D.output, []

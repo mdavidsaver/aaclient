@@ -5,15 +5,36 @@
 
 import os
 from pathlib import Path
-from shutil import copyfile
+import platform
 
-from distutils.log import info
+from distutils.log import info, warn
 from distutils.spawn import find_executable
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
+from numpy.distutils.misc_util import get_numpy_include_dirs
+
 from Cython.Build import cythonize
+
+def env_path(name):
+    P = os.environ.get(name)
+    if P:
+        return P.split(os.pathsep)
+    else:
+        return []
+
+include_dirs = env_path('AACLIENT_INCLUDE_DIRS')
+include_dirs += get_numpy_include_dirs()
+include_dirs.append('aaclient') # aaclient/pb.h
+
+library_dirs = env_path('AACLIENT_LIB_DIRS')
+
+if platform.system()=='Windows':
+    protobuf_lite='libprotobuf-lite' # yup. really...
+else:
+    protobuf_lite='protobuf-lite'
+
 
 class BuildProtoC(build_ext):
     def initialize_options(self):
@@ -23,8 +44,15 @@ class BuildProtoC(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
 
-        if self.protoc and not os.path.isfile(self.protoc):
-            self.protoc = find_executable(self.protoc)
+        self.__path=os.pathsep.join([
+            os.environ['PATH'],
+            os.environ.get('AACLIENT_PATH', ''),
+        ])
+
+        self.protoc = find_executable(self.protoc, path=self.__path)
+
+        if not self.protoc:
+            raise RuntimeError("Failed to find protoc executable in %s"%self.__path)
 
         self.protoout = Path(self.build_temp)
         self.mkpath(str(self.protoout))
@@ -49,7 +77,7 @@ class BuildProtoC(build_ext):
 
                 if not src.exists() or src.read_bytes()!=tmp.read_bytes():
                     info("UPDATED {!r}".format(src))
-                    copyfile(tmp, src)
+                    self.copy_file(tmp, src)
                 else:
                     info("UNCHANGED {!r}".format(src))
 
@@ -59,6 +87,23 @@ class BuildProtoC(build_ext):
         build_ext.build_extension(self, ext)
         ext.sources = orig_srcs
 
+    def run(self):
+        build_ext.run(self)
+        if platform.system()=='Windows':
+            dll=protobuf_lite+'.dll'
+            dest=os.path.join(self.build_lib, 'aaclient', dll)
+            info('Searching for %r in %r', dll, self.__path)
+            for dname in self.__path.split(os.pathsep):
+                if not dname or not os.path.isdir(dname):
+                    continue
+                cand = os.path.join(dname, dll)
+                if os.path.isfile(cand):
+                    info('Copying %r -> %r', cand, dest)
+                    self.copy_file(cand, dest)
+                    break
+            else:
+                warn("Did not find %r", dll)
+
 
 BuildProtoC.user_options = build_ext.user_options + [
     ('protoc=', 'P', "protobuf compiler"),
@@ -67,9 +112,11 @@ BuildProtoC.user_options = build_ext.user_options + [
 setup(
     ext_modules=cythonize([
         Extension(name='aaclient._ext',
+                  include_dirs = include_dirs,
+                  library_dirs = library_dirs,
                   sources=['aaclient/ext.pyx', 'aaclient/EPICSEvent.proto'],
-                  libraries=['protobuf-lite'],
-                  define_macros=[('NPY_NO_DEPRECATED_API','NPY_1_7_API_VERSION')],
+                  libraries=[protobuf_lite],
+                  extra_compile_args=['-std=c++11'],
         ),
     ]),
 

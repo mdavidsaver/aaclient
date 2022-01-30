@@ -1,0 +1,56 @@
+name: Build Wheels
+
+on: [push, pull_request]
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel~=2.3.1
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD_VERBOSITY: 1
+
+          CIBW_ARCHS: auto64
+          CIBW_SKIP: "pp* *musl*"
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_EXTRAS: hdf5
+
+          CIBW_BEFORE_ALL_LINUX: >
+            yum install -y protobuf-compiler protobuf-lite-devel
+            || dnf install -y protobuf-compiler protobuf-lite-devel
+            || (apt-get -y update && apt-get -y install protobuf-compiler libprotobuf-dev )
+
+          CIBW_BEFORE_ALL_MACOS: brew install protobuf
+
+          CIBW_ENVIRONMENT_WINDOWS: >
+            AACLIENT_INCLUDE_DIRS="$VCPKG_INSTALLATION_ROOT\\installed\\x64-windows\\include"
+            AACLIENT_LIB_DIRS="$VCPKG_INSTALLATION_ROOT\\installed\\x64-windows\\lib"
+            PATH="$VCPKG_INSTALLATION_ROOT\\installed\\x64-windows\\tools\\protobuf;$VCPKG_INSTALLATION_ROOT\\installed\\x64-windows\\bin;$PATH"
+          CIBW_BEFORE_ALL_WINDOWS: >
+            %VCPKG_INSTALLATION_ROOT%\vcpkg --disable-metrics install protobuf:x64-windows
+            && dir %VCPKG_INSTALLATION_ROOT%\installed\x64-windows\include
+            && dir %VCPKG_INSTALLATION_ROOT%\installed\x64-windows\lib
+            && dir %VCPKG_INSTALLATION_ROOT%\installed\x64-windows\bin
+            && dir %VCPKG_INSTALLATION_ROOT%\installed\x64-windows\tools\protobuf
+
+          CIBW_TEST_COMMAND: >
+            pwd
+            && python -m pytest -v --log-level=DEBUG --pyargs aaclient
+
+#      - uses: actions/upload-artifact@v2
+#        with:
+#          path: ./wheelhouse/*.whl

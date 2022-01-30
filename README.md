@@ -13,14 +13,30 @@ Intended to supplant https://github.com/epicsdeb/carchivetools
 Requirements from the python ecosystem (eg. pip)
 
 * python >= 3.7
-* setuptools
+* aiohttp >= 3.7.0 (and perhaps earlier)
 * numpy >= 1.7
 * Cython >= 0.20
+* setuptools
 
 Requirements from outside the python ecosystem (eg. rpm, deb, etc.)
 
-* protobuf-compiler
-* libprotobuf-dev
+* Working C++11 toolchain
+* protobuf compiler
+* protobuf-lite library and headers for >= 3.0
+
+```sh
+apt-get install protobuf-compiler libprotobuf-dev
+
+yum install protobuf-compiler libprotobuf-devel
+
+dnf install protobuf-compiler libprotobuf-devel
+
+brew install protobuf
+
+choco install protoc
+```
+
+Build and install with pip
 
 ```sh
 virtualenv aa

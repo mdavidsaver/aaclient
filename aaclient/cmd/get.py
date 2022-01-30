@@ -29,6 +29,9 @@ def getargs():
     G.add_argument('--skip-first', default=False, action='store_true', dest='skipFirst',
                    help="Don't print first sample.  PVs with only one sample are omitted.")
 
+    G.add_argument('--utc', action='store_true',
+                   help='Display times in UTC')
+
     P.add_argument('names', nargs='*', default=[])
 
     P.add_argument('--pv-list', metavar='FILE', dest='pvlist',
@@ -59,7 +62,9 @@ async def getnprint(args, arch, pv, printName=True):
 
         for i in range(meta.shape[0]):
             V, M = val[i,:], meta[i]
-            T = makeTime((M['sec'], M['ns'])).astimezone()
+            T = makeTime((M['sec'], M['ns']))
+            if not args.utc:
+                T = T.astimezone()
             out = [
                 T.strftime('%m-%d %H:%M:%S.%f')
             ]
