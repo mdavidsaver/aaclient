@@ -53,9 +53,6 @@ class BuildProtoC(build_ext):
         self.protoc = find_executable(self.protoc, path=self.__path)
         self.strip = find_executable(self.strip, path=self.__path)
 
-        if not self.protoc:
-            raise RuntimeError("Failed to find protoc executable in %s"%self.__path)
-
         self.protoout = Path(self.build_temp)
         self.mkpath(str(self.protoout))
         self.include_dirs.append(self.protoout)
@@ -74,6 +71,9 @@ class BuildProtoC(build_ext):
                 src = tmp.with_suffix('.cpp') # "build/temp.*/EPICSEvent.pb.cpp"
 
                 info("GEN protoc {!r} -> {!r}".format(proto, src))
+
+                if not self.protoc:
+                    raise RuntimeError("Failed to find protoc executable in %s"%self.__path)
 
                 self.spawn([self.protoc, '--cpp_out='+str(self.protoout), proto])
 
