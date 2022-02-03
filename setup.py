@@ -95,6 +95,7 @@ class BuildProtoC(build_ext):
     def run(self):
         build_ext.run(self)
         if platform.system()=='Windows':
+            # Copy in protobuf-lite dll
             dll=protobuf_lite+'.dll'
             dest=os.path.join(self.build_lib, 'aaclient', dll)
             info('Searching for %r in %r', dll, self.__path)
