@@ -6,7 +6,7 @@
 import os
 from pathlib import Path
 import platform
-
+import sysconfig
 from distutils.log import info, warn
 from distutils.spawn import find_executable
 
@@ -40,6 +40,7 @@ class BuildProtoC(build_ext):
     def initialize_options(self):
         build_ext.initialize_options(self)
         self.protoc = 'protoc'
+        self.strip = 'strip'
 
     def finalize_options(self):
         build_ext.finalize_options(self)
@@ -50,6 +51,7 @@ class BuildProtoC(build_ext):
         ])
 
         self.protoc = find_executable(self.protoc, path=self.__path)
+        self.strip = find_executable(self.strip, path=self.__path)
 
         if not self.protoc:
             raise RuntimeError("Failed to find protoc executable in %s"%self.__path)
@@ -86,6 +88,9 @@ class BuildProtoC(build_ext):
         ext.sources = new_srcs
         build_ext.build_extension(self, ext)
         ext.sources = orig_srcs
+
+        if platform.system()=='Linux' and not sysconfig.get_config_var('Py_DEBUG') and self.strip:
+            self.spawn([self.strip, '--strip-debug', self.get_ext_fullpath(ext.name)])
 
     def run(self):
         build_ext.run(self)
