@@ -4,21 +4,27 @@ Utilities for interacting with an EPICS
 [Archiver Appliance](https://slacmshankar.github.io/epicsarchiver_docs/)
 server.
 
+With the exception of `arget --how plot ...` PV name strings are passed through
+verbatim, and may include AA binning operators.
+See the [Processing of data](https://slacmshankar.github.io/epicsarchiver_docs/userguide.html)
+section for a list.
+
 For fidelity, data is retrieved in the binary protobuf encoding native to AA.
 
 Intended to supplant https://github.com/epicsdeb/carchivetools
 
 ## Building
 
-Requirements from the python ecosystem (eg. pip)
+Dependencies from the python ecosystem (eg. pip)
 
 * python >= 3.7
 * aiohttp >= 3.7.0 (and perhaps earlier)
 * numpy >= 1.7
 * Cython >= 0.20
 * setuptools >= 40.9.0
+* h5py (optional)
 
-Requirements from outside the python ecosystem (eg. rpm, deb, etc.)
+Dependencies from outside the python ecosystem (eg. rpm, deb, etc.)
 
 * Working C++11 toolchain
 * protobuf compiler
@@ -32,9 +38,10 @@ yum install protobuf-compiler libprotobuf-devel
 dnf install protobuf-compiler libprotobuf-devel
 
 brew install protobuf
-
-choco install protoc
 ```
+
+(Getting protobuf on windows is difficult...
+See [for an example](.github/workflows/cibuildwheel.yml) using [vcpkg](https://github.com/microsoft/vcpkg).)
 
 Build and install with pip
 
@@ -140,6 +147,7 @@ which returns an object inheriting from `aaclient.IArchive`.
 
 The `aaclient.IArchive.raw_iter()` method allows for incremental
 retrieval of arbitrarily large data for long time range.
+Async. iteration will yield samples in batches.
 
 ### Blocking API
 
