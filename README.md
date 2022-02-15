@@ -16,7 +16,7 @@ Requirements from the python ecosystem (eg. pip)
 * aiohttp >= 3.7.0 (and perhaps earlier)
 * numpy >= 1.7
 * Cython >= 0.20
-* setuptools
+* setuptools >= 40.9.0
 
 Requirements from outside the python ecosystem (eg. rpm, deb, etc.)
 
