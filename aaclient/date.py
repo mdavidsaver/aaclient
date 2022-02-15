@@ -51,7 +51,7 @@ __all__ = (
 )
 
 _tupats = (
-    # Match [[Y/]M.D ]H:M[:S[.F]][Z]
+    # Match [[Y/]M/D ]H:M[:S[.F]][Z]
     re.compile(r'''
         \s*
         (?:
