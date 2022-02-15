@@ -188,27 +188,27 @@ port = {self.conf['port']}
             out.seek(0)
             return P.returncode, out.read()
 
-    async def test_argrep_none(self):
+    async def test_aagrep_none(self):
         code, out = await self.runCLI("grep", '--verbose', "--exact", "nosuchpv")
         self.assertEqual(code, 1)
         self.assertEqual(out, '')
 
-    async def test_argrep_one(self):
+    async def test_aagrep_one(self):
         code, out = await self.runCLI("grep", '--verbose', "--exact", "test1")
         self.assertEqual(code, 0)
         self.assertEqual(out, 'test1\n')
 
-    async def test_argrep_wild(self):
+    async def test_aagrep_wild(self):
         code, out = await self.runCLI("grep", '--verbose', "--wildcard", "test?")
         self.assertEqual(code, 0)
         self.assertEqual(out, 'test1\ntest2\n')
 
-    async def test_argrep_re(self):
+    async def test_aagrep_re(self):
         code, out = await self.runCLI("grep", '--verbose', "--regexp", "test[12]")
         self.assertEqual(code, 0)
         self.assertEqual(out, 'test1\ntest2\n')
 
-    async def test_arget(self):
+    async def test_aaget(self):
         # dummy server ignore time range
         code, out = await self.runCLI("get", '--verbose', "--utc", "-s=-1h", "-e", "now", "LN-AM{RadMon:1}DoseRate-I")
         self.assertEqual(code, 0)
@@ -237,7 +237,7 @@ port = {self.conf['port']}
 02-06 22:56:44.449503 LN-AM{RadMon:1}DoseRate-I 0.03
 '''.lstrip())
 
-    async def test_arh5(self):
+    async def test_aah5(self):
         try:
             import h5py
         except ImportError:

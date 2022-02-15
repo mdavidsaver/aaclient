@@ -4,7 +4,7 @@ Utilities for interacting with an EPICS
 [Archiver Appliance](https://slacmshankar.github.io/epicsarchiver_docs/)
 server.
 
-With the exception of `arget --how plot ...` PV name strings are passed through
+With the exception of `aaget --how plot ...` PV name strings are passed through
 verbatim, and may include AA binning operators.
 See the [Processing of data](https://slacmshankar.github.io/epicsarchiver_docs/userguide.html)
 section for a list.
@@ -52,7 +52,7 @@ pip install -U pip
 pip install Cython
 ./setup.py sdist
 pip install dist/aaclient-*.tar.gz
-arget -h
+aaget -h
 ```
 
 Alternately, for in-place usage (eg. evaluation or troubleshooting).
@@ -76,38 +76,38 @@ an Archiver Appliance server.
 
 See the [example configuration file](aaclient.conf.example).
 
-### `argrep` Searching for PVs
+### `aagrep` Searching for PVs
 
-Running `argrep` without arguments will attempt to print a full
+Running `aagrep` without arguments will attempt to print a full
 list of PV names being archived.
 Otherwise query patterns (wildcard or regexp) will be applied.
 If multiple patterns are provided, the output will be all
 PV names which matched any pattern.
 
 ```
-$ argrep RH
+$ aagrep RH
 CO2:RH-I
 ```
 
-### `arget` Printing data
+### `aaget` Printing data
 
 Query data from a set of PV names for a certain time range
 and print the results.
 
 ```
-$ arget --start='-1 h' --end=now CO2:RH-I
+$ aaget --start='-1 h' --end=now CO2:RH-I
 01-30 07:50:11.958813 CO2:RH-I 45.10040283203125
 01-30 08:13:04.816086 CO2:RH-I 44.56939697265625
 01-30 08:40:41.527406 CO2:RH-I 44.06585693359375
 ```
 
-### `arh5` Extract to HDF5 file
+### `aah5` Extract to HDF5 file
 
-Queries like `arget`, with results written to a HDF5 file
+Queries like `aaget`, with results written to a HDF5 file
 instead of being printed to screen.
 
 ```
-$ arh5 --start='-1 h' --end=now out.h5 CO2:RH-I
+$ aah5 --start='-1 h' --end=now out.h5 CO2:RH-I
 INFO:__main__:'CO2:RH-I' : (3, 1)
 $ h5ls -r out.h5 
 /                        Group
@@ -118,9 +118,9 @@ $ h5ls -r out.h5
 
 ### Alternate entry points.
 
-* `arget` -> `python -m aaclient.cmd.get`
-* `argrep` -> `python -m aaclient.cmd.grep`
-* `arh5` -> `python -m aaclient.cmd.h5`
+* `aaget` -> `python -m aaclient.cmd.get`
+* `aagrep` -> `python -m aaclient.cmd.grep`
+* `aah5` -> `python -m aaclient.cmd.h5`
 
 
 ## API
