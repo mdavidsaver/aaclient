@@ -28,5 +28,8 @@ def loadConfig(name = 'DEFAULT', paths=None):
         'starttime':'-1h',
         'endtime':'now',
     }
-    P.read(paths)
+    if paths:
+        cfiles = P.read(paths)
+        if not cfiles:
+            raise RuntimeError(f"No configuration file found!  Create one of: {' '.join(paths)}")
     return P[name]
