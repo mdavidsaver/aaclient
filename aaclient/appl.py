@@ -38,7 +38,9 @@ class Appl(IArchive):
         self._info = None
 
     async def close(self):
-        await self._ctxt.close()
+        if self._ctxt is not None:
+            await self._ctxt.close()
+            self._ctxt = None
 
     async def search(self, pattern=None, match=MatchMode.Wildcard, **kws):
         if kws:
