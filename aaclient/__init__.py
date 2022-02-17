@@ -5,6 +5,7 @@
 import os
 import platform
 import enum
+from typing import Any, AsyncIterable, Dict, Tuple
 from importlib import import_module
 
 import numpy as np
@@ -43,7 +44,7 @@ class IArchive:
         """
         raise NotImplementedError()
 
-    async def search(self, pattern=None, match=MatchMode.Wildcard, **kws):
+    async def search(self, pattern=None, match=MatchMode.Wildcard, **kws) -> Dict[str, Any]:
         """Lookup PV names exactly or by matching a pattern.
 
         Returns a mapping of PV name to as yet unspecified information about the PV. ::
@@ -53,12 +54,12 @@ class IArchive:
         """
         raise NotImplementedError()
 
-    async def grep(self, pattern, **kws):
+    async def grep(self, pattern, **kws) -> Dict[str, Any]:
         """Alias for search() with MatchMode.Regex
         """
         return await self.search(pattern, match=MatchMode.Regex, **kws)
 
-    async def raw_iter(self, pv, T0=None, Tend=None, chunkSize=None):
+    async def raw_iter(self, pv, T0=None, Tend=None, chunkSize=None) -> AsyncIterable[Tuple[np.ndarray, aameta]]:
         """Request raw data in time range.
 
         Returns an async generator which will yield tuples of (ndarray, ndarray)
@@ -66,8 +67,8 @@ class IArchive:
         """
         raise NotImplementedError()
 
-    async def raw(self, *args, **kws):
-        """raw(pv, T0=None, Tend=None, chunkSize=None)
+    async def raw(self, *args, **kws) -> Tuple[np.ndarray, aameta]:
+        """raw(pv, T0=None, Tend=None, chunkSize=None) -> (ndarray, aameta)
         Request raw data in time range.
 
         Calls raw_iter() and accumulates results into a single pair of value and meta-data ndarrays.
@@ -80,14 +81,18 @@ class IArchive:
 
         return np.concatenate(vals, axis=0), np.concatenate(metas, axis=0).view(aameta)
 
-    async def plot(self, pv, T0=None, Tend=None, count=None, **kws):
+    async def plot(self, pv, T0=None, Tend=None, count=None, **kws) -> Tuple[np.ndarray, aameta]:
         """Request server-side binned data suitable for a simple plot.
         """
         raise NotImplementedError()
 
 
-async def getArchive(conf='DEFAULT', **kws):
-    """Completes with an IArchive instance which
+async def getArchive(conf='DEFAULT', **kws) -> IArchive:
+    """Entry point for access to a data Archiver.  Completes with an IArchive
+
+    :param conf: Either a string naming a section in an aaclient.conf file,
+                 or a dict-like object having the necessary keys from such a file.
+    :return: An sub-class of IArchive
     """
     if conf is None or isinstance(conf, str):
         from .conf import loadConfig
