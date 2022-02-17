@@ -2,19 +2,28 @@
 # SPDX-License-Identifier: BSD
 # See LICENSE file
 
+import asyncio
+import atexit
+import contextvars
+import logging
 import os
 import platform
 import enum
 from typing import Any, AsyncIterable, Dict, Tuple
+from weakref import WeakKeyDictionary
 from importlib import import_module
 
 import numpy as np
 
 from .dtype import aameta
 
+_log = logging.getLogger(__name__)
+
 __all__ = (
     'getArchive',
     'MatchMode',
+    'aaget',
+    'aagrep',
 )
 
 # finding bundled libprotobuf-lite.dll in wheel builds
@@ -109,3 +118,36 @@ async def getArchive(conf='DEFAULT', **kws) -> IArchive:
     ret = await gA(conf, **kws)
     assert isinstance(ret, IArchive), ret
     return ret
+
+async def aaget(*args, how='raw', conf=None, **kws):
+    """aaget(pv, T0=None, Tend=None, how='raw', **kws)
+
+    Request data from the DEFAULT archiver.  eg. for use with ipython ::
+
+        from aaclient import aaget
+        V,M=await aaget('some:pv', T0='-1h')
+
+    :param str pv: PV name to request
+    :param T0: Absolute or relative start time for the interval.
+               Defaults to the current time.  (String or datetime)
+    :param Tend: Absolute or relative end time for the interval.
+                 Defaults to the current time.  (String or datetime)
+    :param str how: Request method.  eg 'raw' or 'plot'.
+    """
+    async with await getArchive(conf) as arch:
+        meth = getattr(arch, how)
+        return await meth(*args, **kws)
+
+async def aasearch(*args, conf=None, **kws):
+    """aagrep(pattern=None, match=MatchMode.Regex, **kws)
+
+    Search for PV names available from the DEFAULT archiver.  eg. for use with ipython ::
+
+        from aaclient import aagrep
+        V,M=await aagrep('some:.*')
+
+    :param str pattern: PV name pattern
+    :param MatchMode match: How to match pattern.  Defaults to regular expression.
+    """
+    async with await getArchive(conf) as arch:
+        return await arch.search(*args, **kws)
