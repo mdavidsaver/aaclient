@@ -5,6 +5,7 @@
 import logging
 import re
 import math
+from urllib.parse import urlparse, urlunparse
 
 import asyncio
 import aiohttp
@@ -80,7 +81,7 @@ class Appl(IArchive):
 
         D = StreamDecoder(threshold=chunkSize or self._threshold, consolidate=self._consolidate)
 
-        resp = await self.__get(self._info['dataRetrievalURL']+'/data/getData.raw', params=Q,
+        resp = await self.__get(self._info['retrievalURL'].replace('/bpl','')+'/data/getData.raw', params=Q,
                                 read_bufsize=2**20)
 
         async with resp:
@@ -130,12 +131,28 @@ class Appl(IArchive):
 async def getArchive(conf, **kws):
     appl = Appl(conf, **kws)
     try:
-        async with appl._ctxt.get(conf['url']) as R:
+        entryURL = conf['url']
+        aaHost = urlparse(entryURL).netloc.split(':',1)[0] # host/IP without port#
+        async with appl._ctxt.get(entryURL) as R:
             appl._info = await R.json()
+
+        # if appliance info yields component urls with localhost,
+        # rewrite to use the request URL.
+        for k,v in appl._info.items():
+            if not v.startswith('http://') and not v.startswith('https://'):
+                continue
+
+            V = urlparse(v)
+            netloc = V.netloc.rsplit(':',1)
+            if netloc[0] in ('localhost', '127.0.0.1', ):
+                netloc[0] = aaHost
+                V = V._replace(netloc=':'.join(netloc))
+
+            appl._info[k] = V.geturl()
 
         _log.debug("Server Info %r %r", conf['url'], appl._info)
 
-        required = {'mgmtURL', 'dataRetrievalURL'}
+        required = {'mgmtURL', 'retrievalURL'}
         if not set(appl._info.keys()).issuperset(required):
             raise RuntimeError(f"Server Info missing some required keys {required} from {appl._info}")
 
