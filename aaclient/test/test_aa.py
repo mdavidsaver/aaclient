@@ -242,6 +242,8 @@ port = {self.conf['port']}
             import h5py
         except ImportError:
             raise unittest.SkipTest('h5py not installed')
+        else:
+            h5py.File # do something to silence
 
         with TemporaryDirectory() as outdir:
             outfile = Path(outdir) / "out.h5"
