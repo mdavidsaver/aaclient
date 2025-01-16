@@ -10,7 +10,8 @@ from numpy.testing import assert_equal
 
 from .. import _ext, dtype
 
-testdata = (Path(__file__).parent / 'testdata.pb').read_bytes()
+data_dir = Path(__file__).parent
+testdata = (data_dir / 'testdata.pb').read_bytes()
 
 
 class TestXCode(unittest.TestCase):
@@ -63,6 +64,7 @@ class TestEncode(unittest.TestCase):
         self.assertListEqual(lines, self.td[9:10])
 
 class DecodeTester:
+    input = testdata
     """Verify that testdata is decoded as expected, both when
     process()'d all at once, and one byte at a time.
     """
@@ -74,21 +76,22 @@ class DecodeTester:
             RM = np.asarray(RM, dtype=dtype.dbr_time)
             assert_equal(LV, RV)
             assert_equal(LM, RM)
-        self.assertEqual(len(lhs), len(rhs))
+        print(rhs)
+        self.assertEqual(len(lhs), len(rhs), (lhs, rhs))
 
     def test_full(self):
         D = _ext.StreamDecoder(threshold=self.threshold, consolidate=self.consolidate)
 
-        self.assertTrue(D.process(testdata, last=True))
+        self.assertTrue(D.process(self.input, last=True))
 
         self.assertOutputEqual(self.expected, D.output)
 
     def test_bytebybyte(self):
         D = _ext.StreamDecoder(threshold=self.threshold, consolidate=self.consolidate)
 
-        N=len(testdata)
+        N=len(self.input)
         for i in range(N):
-            inp = testdata[i:(i+1)]
+            inp = self.input[i:(i+1)]
             last = i+1==N
             nl = inp==b'\n'
             try:
@@ -168,3 +171,35 @@ class TestDecodeJoin(unittest.TestCase, DecodeTester):
               (1423263404, 449503115, 0, 0)]
             ),
         ]
+
+# 01-13 19:07:07.630240 ext:2:RH-I 37.0
+# 01-14 11:52:57.066158 ext:2:RH-I 34.0
+# 01-14 12:15:27.092548 ext:2:RH-I 31.0
+# 01-14 13:32:27.081810 ext:2:RH-I 32.0 INVALID 9
+# 01-14 13:37:07.112121 ext:2:RH-I 32.0
+# 01-14 13:43:17.198643 ext:2:RH-I 32.0 INVALID 9
+# 01-14 13:43:47.136166 ext:2:RH-I 33.0
+# 01-14 14:21:16.871574 ext:2:RH-I 34.0
+# 01-14 21:16:16.956306 ext:2:RH-I 37.0
+# 01-15 03:23:46.492364 ext:2:RH-I 40.0
+# 01-15 07:06:36.370090 ext:2:RH-I 39.0 INVALID 9
+# 12-31 16:00:00.000000 ext:2:RH-I 0.0 DISCONNECT 0
+# 01-15 16:32:39.853402 ext:2:RH-I 39.0 INVALID 9
+
+class TestDisconn(unittest.TestCase, DecodeTester):
+    input = (data_dir / 'test_RH.pb').read_bytes()
+    threshold = 6 # split each block in two
+    consolidate = False
+    expected = [
+        ([[37.], [34.], [31.], [32.], [32.], [32.]],
+         [(1736824027, 630240554, 0, 0), (1736884377,  66158141, 0, 0),
+          (1736885727,  92547883, 0, 0), (1736890347,  81810589, 3, 9),
+          (1736890627, 112120816, 0, 0), (1736890997, 198643196, 3, 9)]),
+        ([[33.], [34.]],
+         [(1736891027, 136165894, 0, 0), (1736893276, 871574215, 0, 0)]),
+        ([[37.], [40.], [39.]],
+         [(1736918176, 956306539, 0, 0), (1736940226, 492364266, 0, 0),
+          (1736953596, 370090287, 3, 9)]),
+        ([[39.]],
+         [(1736987559, 853402206,    3, 9)]),
+    ]

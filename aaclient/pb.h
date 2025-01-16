@@ -187,7 +187,10 @@ struct DecoderPB : public Decoder {
                 if(fv.name()=="cnxlostepsecs") {
                     std::istringstream strm(fv.val());
 
-                    if(!(strm>>sec).bad()) {
+                    if(!(strm>>sec).bad() && sec > sectoyear) {
+                        // TODO: AA seems to inject disconnect event with "0" time
+                        //       at boundary between current engine data and first stored.
+                        //       really???
                         cnxlostepsecs = true;
                         sec -= sectoyear;
                     }
