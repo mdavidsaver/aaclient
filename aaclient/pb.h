@@ -168,7 +168,7 @@ struct DecoderPB : public Decoder {
 
     virtual size_t process(const std::string& linebuf) override final {
         bool cnxlostepsecs = false;
-        uint32_t sec = 0;
+        int32_t sec = 0;
         {
             pbs.emplace_back();
             auto& pb = pbs.back();
