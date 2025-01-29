@@ -32,4 +32,4 @@ def loadConfig(name = 'DEFAULT', paths=None):
         cfiles = P.read(paths)
         if not cfiles:
             raise RuntimeError(f"No configuration file found!  Create one of: {' '.join(paths)}")
-    return P[name]
+    return P[name or 'DEFAULT']

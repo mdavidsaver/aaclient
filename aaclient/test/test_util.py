@@ -14,6 +14,7 @@ class TestWild(unittest.TestCase):
                 (r"he?lo.", r"he.lo\."),
                 (r"he?lo. wor\?d", r"he.lo\.\ wor\?d"),
                 (r"hel*w\*rld", r"hel.*w\*rld"),
+                (r"*T-I", r".*T\-I"),
             ]:
             out = util.wild2re(inp)
             self.assertEqual(exp, out, msg=inp)
