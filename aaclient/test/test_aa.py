@@ -208,6 +208,11 @@ port = {self.conf['port']}
         self.assertEqual(code, 0)
         self.assertEqual(out, 'test1\ntest2\n')
 
+    async def test_aagrep_re_op(self):
+        code, out = await self.runCLI("grep", '--verbose', "--regexp", "foo_42(test[12])")
+        self.assertEqual(code, 0)
+        self.assertEqual(out, 'foo_42(test1)\nfoo_42(test2)\n')
+
     async def test_aaget(self):
         # dummy server ignore time range
         code, out = await self.runCLI("get", '--verbose', "--utc", "-s=-1h", "-e", "now", "LN-AM{RadMon:1}DoseRate-I")

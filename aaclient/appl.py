@@ -27,6 +27,11 @@ except ImportError:
         func_call = functools.partial(ctx.run, func, *args, **kwargs)
         return await loop.run_in_executor(None, func_call)
 
+# name with postprocessing operator
+# eg. "caplotbinning_42(some*pattern)"
+_op_pattern = re.compile(r'''
+    ([a-zA-Z0-9]+_[0-9]+)\(([^\)]+)\)
+''', re.VERBOSE)
 
 _log = logging.getLogger(__name__)
 
@@ -43,18 +48,25 @@ class Appl(IArchive):
             await self._ctxt.close()
             self._ctxt = None
 
-    async def search(self, pattern=None, match=MatchMode.Wildcard, **kws):
+    async def search(self, pattern: str, match=MatchMode.Wildcard, **kws):
+        assert match in MatchMode, match
         if kws:
             _log.warn("Ignore unknown keywords %r", kws)
 
-        if not pattern:
-            pattern = '^.*$' # list everything
+        opM = _op_pattern.match(pattern)
+        if opM is not None:
+            pattern = opM.group(2) # bare PV name pattern
+            _log.debug('Detected operator %r', opM.group(1))
 
-        elif match is MatchMode.Exact:
+        if match is MatchMode.Exact:
             pattern = '^%s$'%re.escape(pattern)
+            opM = None
 
         elif match is MatchMode.Wildcard:
             pattern = wild2re(pattern)
+
+        else:
+            assert match is MatchMode.Regex
 
         # Archive Appliance matches the entire line (implicit ^...$)
         # we default to partial match
@@ -66,6 +78,9 @@ class Appl(IArchive):
         _log.debug("searching for %r", pattern)
 
         pvs = await (await self.__get(self._info['mgmtURL']+'/getAllPVs', params={'regex':pattern})).json()
+
+        if opM is not None:
+            pvs = [f'{opM.group(1)}({pv})' for pv in pvs]
 
         return {pv:None for pv in pvs}
 
@@ -125,8 +140,13 @@ class Appl(IArchive):
 
     async def __get(self, url, *args, **kws):
         _log.debug("GET %r %s %s", url, args, kws)
-        async with self._limit:
-            return (await self._ctxt.get(url, *args, **kws))
+        try:
+            async with self._limit:
+                R = (await self._ctxt.get(url, *args, **kws))
+        except:
+            _log.exception("GET %r %s %s", url, args, kws)
+            raise
+        return R
 
 async def getArchive(conf, **kws):
     appl = Appl(conf, **kws)

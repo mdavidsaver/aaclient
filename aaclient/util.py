@@ -147,6 +147,7 @@ def add_common_args(P):
 
 def add_search_args(G):
     G.add_argument('-W', '--wildcard', action='store_const', dest='match', const=MatchMode.Wildcard,
+                   default=MatchMode.Wildcard,
                    help='Match names as wildcard patterns')
     G.add_argument('-R', '--regexp', action='store_const', dest='match', const=MatchMode.Regex,
                    default=MatchMode.Regex,
