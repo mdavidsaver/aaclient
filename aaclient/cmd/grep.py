@@ -35,7 +35,7 @@ async def amain(args):
             print(pv)
 
         if len(matches)==0:
-            sys.exit(1)
+            return 1
             
 
 def main():

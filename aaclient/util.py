@@ -197,7 +197,9 @@ def run_with_timeout(getargs, corofn):
     logging.basicConfig(level=args.level)
     _log.debug('%r', args)
     try:
-        asyncio.run(asyncio.wait_for(corofn(args), timeout=args.timeout or None))
+        code = asyncio.run(asyncio.wait_for(corofn(args), timeout=args.timeout or None))
     except asyncio.TimeoutError:
         print('Unexpected timeout', file=sys.stderr)
         sys.exit(1)
+    else:
+        sys.exit(code or 0)

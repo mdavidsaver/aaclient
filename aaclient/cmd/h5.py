@@ -90,7 +90,7 @@ async def amain(args):
         from h5py import File
     except ImportError:
         _log.exception("Unable to import h5py, which must be installed to export as HDF5")
-        sys.exit(1)
+        return 1
 
     async with await getArchive(args.conf) as arch:
 
@@ -112,7 +112,7 @@ async def amain(args):
 
         if len(matches)==0:
             print("No PVs", file=sys.stderr)
-            sys.exit(1)
+            return 1
 
         sep = args.output.rfind(':')
         if sep<=2: # colon not found, or (probably) windows drive letter
