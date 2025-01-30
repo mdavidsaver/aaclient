@@ -27,7 +27,7 @@ Dependencies from the python ecosystem (eg. pip)
 Dependencies from outside the python ecosystem (eg. rpm, deb, etc.)
 
 * Working C++11 toolchain
-* protobuf compiler, protobuf-lite library, and headers for >= 3.0
+* protobuf compiler, protobuf-lite library, and headers for >= 2.5
   - These compiler and library versions must match
 
 ```sh

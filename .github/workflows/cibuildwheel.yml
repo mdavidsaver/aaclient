@@ -83,7 +83,7 @@ jobs:
           python -m twine -h
 
       - name: sdist
-        run: python setup.py sdist --formats=gztar
+        run: python -m build --sdist .
 
       - name: Fetch wheels
         uses: actions/download-artifact@v4

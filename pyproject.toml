@@ -1,3 +1,50 @@
 [build-system]
-requires = ["setuptools >= 40.9.0", "wheel", "Cython>=0.20", "numpy>=1.7.0"]
-build-backend = "setuptools.build_meta"
+requires = [
+    "meson-python>=0.12.0",
+    "Cython>=0.20",
+    "numpy>=1.7.0",
+    "numpy<3",
+]
+build-backend = "mesonpy"
+
+[project]
+name = "aaclient"
+version = "0.0.2"
+description = "Tools to query Archiver Appliance and export data"
+readme = "README.md"
+maintainers = [
+    { name = "Michael Davidsaver", email = "mdavidsaver@gmail.com"}
+]
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.7.0",
+    "aiohttp >= 3.7.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+hdf5 = [
+    "h5py",
+]
+
+[project.scripts]
+aaget = "aaclient.cmd.get:main"
+aah5 = "aaclient.cmd.h5:main"
+aagrep = "aaclient.cmd.grep:main"
+
+[project.urls]
+homepage = "https://github.com/mdavidsaver/aaclient"
+
+[tool.meson-python.args]
+compile = ['--verbose']
