@@ -27,8 +27,8 @@ Dependencies from the python ecosystem (eg. pip)
 Dependencies from outside the python ecosystem (eg. rpm, deb, etc.)
 
 * Working C++11 toolchain
-* protobuf compiler
-* protobuf-lite library and headers for >= 3.0
+* protobuf compiler, protobuf-lite library, and headers for >= 3.0
+  - These compiler and library versions must match
 
 ```sh
 apt-get install protobuf-compiler libprotobuf-dev
@@ -133,9 +133,9 @@ from aaclient import getArchive
 
 async def demo():
     A= await getArchive()
-
-    V,M = await A.raw('CO2:CO2-I', T0='-12 h')
-    print(V.shape, M.shape)
+    with A:
+        V,M = await A.raw('CO2:CO2-I', T0='-12 h')
+        print(V.shape, M.shape)
 
 asyncio.run(demo())
 ```
