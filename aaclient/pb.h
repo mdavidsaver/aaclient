@@ -92,7 +92,7 @@ void encode_sample(std::string&out,
     if(cnxlostepsecs) {
         FieldValue* fv = pb.add_fieldvalues();
         fv->set_name("cnxlostepsecs");
-        fv->set_name(cnxlostepsecs);
+        fv->set_val(cnxlostepsecs);
     }
 
     set_val(pb, v, nv);
