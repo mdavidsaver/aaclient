@@ -12,6 +12,7 @@ except ImportError:
     def epoch2num(e):
         raise NotImplementedError("Must install matplotlib")
 
+# must match dbr_time definition in pb.h
 dbr_time = [
     ('sec', np.uint32),
     ('ns', np.uint32),

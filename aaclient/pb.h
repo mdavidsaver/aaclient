@@ -17,6 +17,7 @@
 
 #include <aaclient/EPICSEvent.pb.h>
 
+// must match dbr_time definition in dtype.py
 struct dbr_time {
   uint32_t sec;
   uint32_t ns;
