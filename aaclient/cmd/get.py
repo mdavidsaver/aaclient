@@ -114,7 +114,7 @@ async def amain(args):
                         continue
                     matches[line] = ()
 
-        printName = len(matches)==1
+        printName = len(matches)!=1
 
         if len(matches)==0:
             print("No PVs", file=sys.stderr)
