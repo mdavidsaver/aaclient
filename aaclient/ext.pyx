@@ -5,6 +5,8 @@
 # SPDX-License-Identifier: BSD
 # See LICENSE file
 
+import warnings
+
 cimport cython
 from libc.stdint cimport int16_t, uint32_t, int32_t
 from libcpp.vector cimport vector
@@ -378,12 +380,15 @@ cdef class StreamDecoder:
                             Decoder.prepare(self.dec, curinfo.type(), sectoyear)
                         # else: implicit concat when type/year doesn't change
 
+                        if not self.dec.get():
+                            warnings.warn(f'Ignoring samples with unsupported PayloadType {curinfo.type()}')
+
                     self.pstate = 1
 
                 elif self.unesc.empty(): # blank line ends current list of samples
                     self.pstate = 0
 
-                else: # decode a sample
+                elif self.dec.get(): # decode a sample
                     if self.dec.get().process(self.unesc) >= self.threshold:
                         with gil:
                             self.__finish_output()
