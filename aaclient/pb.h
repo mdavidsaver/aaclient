@@ -95,7 +95,7 @@ void encode_sample(std::string&out,
         fv->set_name(cnxlostepsecs);
     }
 
-    set_val(pb, (const typename PBAttr<PB>::type*)v, nv);
+    set_val(pb, v, nv);
     if(!pb.SerializeToString(&out))
         encode_error();
 }
