@@ -250,8 +250,9 @@ void Decoder::prepare(std::unique_ptr<Decoder>& ret, PayloadType ptype, int32_t 
     CASE(VectorInt);
     CASE(VectorFloat);
     CASE(VectorDouble);
-    CASE(V4GenericBytes);
+//    CASE(V4GenericBytes);  // not yet working...
 #undef CASE
+    case PBAttr<V4GenericBytes>::ptype: break;
     }
     ret->maxelems = 0;
     ret->ptype = ptype;
