@@ -121,6 +121,8 @@ template<typename E>
 typename std::enable_if<std::is_pod<E>::value>::type
 val_assign(const google::protobuf::RepeatedField<E>& v, char *& cur, size_t maxelems)
 {
+    size_t l = v.size();
+    memcpy(cur, v.data(), sizeof(E)*l);
     cur += sizeof(E)*maxelems;
 }
 
