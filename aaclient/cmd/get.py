@@ -72,14 +72,14 @@ async def getnprint(args, arch, pv, printName=True):
             if printName:
                 out.append(pv)
 
-            if len(V.shape)==1: # scalar, print alarm after value
+            if V.size==1: # scalar, print alarm after value
                 out.append(str(V[0]))
 
             sevr = M['severity']
             if sevr:
                 out += [_sevr.get(sevr) or str(sevr), str(M['status'])]
 
-            if len(V.shape)!=1: # scalar, print alarm before value
+            if V.size!=1: # scalar, print alarm before value
                 out.append(repr(V))
 
             print(' '.join(out))
