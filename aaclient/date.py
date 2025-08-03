@@ -37,6 +37,7 @@ Supported string syntax:
   h, hrs, hours
   d, days
   w, week, weeks
+  y, year, years
 
   eg: "-1.4 week 2 hours"
 """
@@ -94,6 +95,9 @@ _units={
     'w':('days',7),
     'week':('days',7),
     'weeks':('days',7),
+    'y':('days',365.25),
+    'year':('days',365.25),
+    'years':('days',365.25),
 }
 
 _tznames = {
