@@ -6,6 +6,7 @@ import asyncio
 from collections import OrderedDict
 import logging
 import sys
+import warnings
 
 from .. import getArchive
 from ..date import makeTime
@@ -59,12 +60,16 @@ async def getnprint(args, arch, pv, printName=True):
         if meta.shape[0]==0:
             return
         first = False
+        Tprev = None
 
         for i in range(meta.shape[0]):
             V, M = val[i,:], meta[i]
             T = makeTime((M['sec'], M['ns']))
             if not args.utc:
                 T = T.astimezone()
+            if Tprev is not None and T < Tprev:
+                warnings.warn(f'non-monotonic {T!r} < {Tprev!r}')
+            Tprev = T
             out = [
                 T.strftime('%m-%d %H:%M:%S.%f')
             ]
