@@ -9,7 +9,7 @@ import sys
 import warnings
 
 from .. import getArchive
-from ..date import makeTime
+from ..date import makeTime, makeTimeInterval
 from ..util import run_with_timeout, add_common_args, add_search_args, add_query_args
 
 _log = logging.getLogger(__name__)
@@ -52,8 +52,10 @@ async def getnprint(args, arch, pv, printName=True):
     _log.debug("get %r : %s -> %s", pv, args.start, args.end)
 
     first = True
+    Tfmt = None
     def printpv(val, meta):
-        nonlocal first
+        nonlocal first, Tfmt
+
         if first and args.skipFirst:
             val, meta = val[1:, :], meta[1:]
 
@@ -61,6 +63,18 @@ async def getnprint(args, arch, pv, printName=True):
             return
         first = False
         Tprev = None
+
+        if Tfmt is None:
+            # select date/time format based on total possible range to be shown
+            T0 = makeTime((meta['sec'][0], meta['ns'][0])) # may be less than args.start
+            if T0.year!=args.end.year:
+                Tfmt = '%y-%m-%d %H:%M:%S.%f'
+            elif T0.month!=args.end.month:
+                Tfmt = '%m-%d %H:%M:%S.%f'
+            elif T0.day!=args.end.day:
+                Tfmt = '%d %H:%M:%S.%f'
+            else:
+                Tfmt = '%H:%M:%S.%f'
 
         for i in range(meta.shape[0]):
             V, M = val[i,:], meta[i]
@@ -71,7 +85,7 @@ async def getnprint(args, arch, pv, printName=True):
                 warnings.warn(f'non-monotonic {T!r} < {Tprev!r}')
             Tprev = T
             out = [
-                T.strftime('%m-%d %H:%M:%S.%f')
+                T.strftime(Tfmt)
             ]
 
             if printName:
@@ -101,6 +115,8 @@ async def getnprint(args, arch, pv, printName=True):
         raise ValueError(f"Unknown --how {args.how}")
 
 async def amain(args):
+    args.start, args.end = makeTimeInterval(args.start, args.end)
+
     async with await getArchive(args.conf) as arch:
 
         matches = OrderedDict()
