@@ -64,14 +64,14 @@ async def getnprint(args, arch, pv, grp):
 
             check_type = V.dtype
 
-        elif check_type.dtype!=V.dtype:
-            ok = check_type.dtype.kind  in ('i','f') and V.dtype.kind in ('i', 'f')
-            check_type = V.dtype
+        elif check_type!=V.dtype:
+            ok = check_type.kind  in ('i','f') and V.dtype.kind in ('i', 'f')
             if ok:
                 _log.warn('Type change %r -> %r.  Using implicit cast', check_type, V.dtype)
             else:
                 _log.error('Type change %r -> %r not supported.  Dropping samples.', check_type, V.dtype)
                 continue
+            check_type = V.dtype
 
         mstart = Ms.shape[0]
         Vs.resize((mstart+V.shape[0], max(Vs.shape[1], V.shape[1])))
