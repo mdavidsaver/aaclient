@@ -77,7 +77,8 @@ class Appl(IArchive):
 
         _log.debug("searching for %r", pattern)
 
-        pvs = await (await self.__get(self._info['mgmtURL']+'/getAllPVs', params={'regex':pattern})).json()
+        # Fetch all PVs matching the regex; limit=-1 means no limit (otherwise defaults to 500)
+        pvs = await (await self.__get(self._info['mgmtURL']+'/getAllPVs', params={'regex':pattern,'limit':-1})).json()
 
         if opM is not None:
             pvs = [f'{opM.group(1)}({pv})' for pv in pvs]
