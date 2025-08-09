@@ -146,11 +146,10 @@ def add_common_args(P):
                    help='Make more noise')
 
 def add_search_args(G):
+    G.set_defaults(match=MatchMode.Regex)
     G.add_argument('-W', '--wildcard', action='store_const', dest='match', const=MatchMode.Wildcard,
-                   default=MatchMode.Wildcard,
                    help='Match names as wildcard patterns')
     G.add_argument('-R', '--regexp', action='store_const', dest='match', const=MatchMode.Regex,
-                   default=MatchMode.Regex,
                    help='Match names as regular expressions  (default)')
     G.add_argument('--exact', action='store_const', dest='match', const=MatchMode.Exact,
                    help='Match names exactly')
